@@ -72,7 +72,7 @@ const sections = [
 
 export default function PrivacyPolicy() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-linear-to-b from-gray-50 to-white">
       {/* Navigation */}
       <nav className="bg-white/80 backdrop-blur-md border-b border-primary/10 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -104,13 +104,13 @@ export default function PrivacyPolicy() {
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             We take your privacy seriously. This policy explains how we collect, use, and protect your personal information.
           </p>
-          <div className="h-1 w-20 bg-gradient-to-r from-primary to-accent rounded-full mx-auto mt-6" />
+          <div className="h-1 w-20 bg-linear-to-r from-primary to-accent rounded-full mx-auto mt-6" />
         </div>
 
         {/* Last Updated */}
         <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 mb-12">
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center shrink-0">
               <FileText size={16} className="text-blue-600" />
             </div>
             <div>
@@ -142,7 +142,7 @@ export default function PrivacyPolicy() {
               className="bg-white rounded-3xl p-8 lg:p-10 border border-gray-100 shadow-lg hover:shadow-xl transition-shadow duration-300"
             >
               <div className="flex items-start gap-4 mb-6">
-                <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${
+                <div className={`w-12 h-12 rounded-2xl bg-linear-to-br ${
                   index % 2 === 0 ? 'from-primary to-primary/80' : 'from-accent to-accent/80'
                 } flex items-center justify-center shadow-lg`}>
                   <section.icon className="text-white" size={24} />
@@ -154,7 +154,7 @@ export default function PrivacyPolicy() {
               <ul className="space-y-4">
                 {section.content.map((item, itemIndex) => (
                   <li key={itemIndex} className="flex items-start gap-3">
-                    <div className="w-2 h-2 rounded-full bg-primary/60 flex-shrink-0 mt-2.5" />
+                    <div className="w-2 h-2 rounded-full bg-primary/60 shrink-0 mt-2.5" />
                     <p className="text-muted-foreground leading-relaxed">{item}</p>
                   </li>
                 ))}
@@ -164,7 +164,7 @@ export default function PrivacyPolicy() {
         </div>
 
         {/* Data Retention */}
-        <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-3xl p-8 lg:p-10 border border-primary/20 my-12">
+        <div className="bg-linear-to-r from-primary/10 to-accent/10 rounded-3xl p-8 lg:p-10 border border-primary/20 my-12">
           <h3 className="text-2xl font-bold text-foreground mb-4">Data Retention</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -229,7 +229,7 @@ export default function PrivacyPolicy() {
             </div>
           </div>
 
-          <div className="mt-8 p-6 bg-gradient-to-r from-primary/5 to-accent/5 rounded-2xl border border-primary/10">
+          <div className="mt-8 p-6 bg-linear-to-r from-primary/5 to-accent/5 rounded-2xl border border-primary/10">
             <p className="text-sm text-muted-foreground text-center">
               <strong>Note:</strong> Changes to this privacy policy will be posted on this page and users will be notified through the app. 
               Continued use of Charak after changes constitutes acceptance of the updated policy.
@@ -241,7 +241,7 @@ export default function PrivacyPolicy() {
         <div className="text-center mt-12">
           <Button 
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="gap-2 bg-gradient-to-r from-primary to-primary/90 text-white"
+            className="gap-2 bg-linear-to-r from-primary to-primary/90 text-white"
           >
             Back to Top
             <ArrowLeft size={16} className="rotate-90" />

@@ -106,25 +106,37 @@ export default function SubAdminsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-linear-to-br from-violet-50 via-purple-50 to-fuchsia-50 dark:from-gray-950 dark:via-purple-950 dark:to-fuchsia-950 relative overflow-hidden">
+      {/* Animated Background Orbs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-violet-400/20 dark:bg-violet-600/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-fuchsia-400/20 dark:bg-fuchsia-600/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}} />
+      </div>
+
       {/* Header */}
-      <div className="border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+      <div className="relative border-b border-white/20 bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" onClick={() => router.back()}>
+              <Button 
+                onClick={() => router.back()}
+                className="bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-700 backdrop-blur-md border border-violet-200/50 dark:border-gray-600/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 text-gray-900 dark:text-gray-100 font-medium"
+              >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
               </Button>
               <div>
-                <h1 className="text-3xl font-bold">Sub Administrators</h1>
-                <p className="text-muted-foreground">Manage sub-admin accounts and permissions</p>
+                <h1 className="text-4xl font-bold bg-linear-to-r from-violet-600 via-purple-600 to-fuchsia-600 bg-clip-text text-transparent mb-2">Sub Administrators</h1>
+                <p className="text-gray-600 dark:text-gray-300 flex items-center gap-2">
+                  <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                  Manage sub-admin accounts and permissions
+                </p>
               </div>
             </div>
             
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
-                <Button>
+                <Button className="bg-linear-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Sub Admin
                 </Button>
@@ -179,29 +191,35 @@ export default function SubAdminsPage() {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto p-4 md:p-8">
+      <div className="max-w-7xl mx-auto p-4 md:p-8 relative">
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardDescription>Total Sub Admins</CardDescription>
-              <CardTitle className="text-3xl">{subAdmins.length}</CardTitle>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card className="group bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl border-white/60 dark:border-gray-700/60 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden relative">
+            <div className="absolute inset-0 bg-linear-to-br from-violet-400/10 to-purple-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <CardHeader className="pb-4 relative">
+              <CardDescription className="text-xs font-medium text-gray-600 dark:text-gray-400">Total Sub Admins</CardDescription>
+              <CardTitle className="text-4xl font-bold bg-linear-to-br from-violet-600 to-purple-600 bg-clip-text text-transparent">{subAdmins.length}</CardTitle>
+              <div className="h-1.5 bg-gradient-to-r from-violet-500 to-purple-500 rounded-full mt-3" />
             </CardHeader>
           </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardDescription>Active</CardDescription>
-              <CardTitle className="text-3xl text-green-600">
+          <Card className="group bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl border-white/60 dark:border-gray-700/60 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden relative">
+            <div className="absolute inset-0 bg-linear-to-br from-green-400/10 to-emerald-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <CardHeader className="pb-4 relative">
+              <CardDescription className="text-xs font-medium text-gray-600 dark:text-gray-400">Active</CardDescription>
+              <CardTitle className="text-4xl font-bold bg-linear-to-br from-green-600 to-emerald-600 bg-clip-text text-transparent">
                 {subAdmins.filter(admin => admin.status === "active").length}
               </CardTitle>
+              <div className="h-1.5 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full mt-3" />
             </CardHeader>
           </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardDescription>Inactive</CardDescription>
-              <CardTitle className="text-3xl text-red-600">
+          <Card className="group bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl border-white/60 dark:border-gray-700/60 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden relative">
+            <div className="absolute inset-0 bg-linear-to-br from-red-400/10 to-pink-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <CardHeader className="pb-4 relative">
+              <CardDescription className="text-xs font-medium text-gray-600 dark:text-gray-400">Inactive</CardDescription>
+              <CardTitle className="text-4xl font-bold bg-linear-to-br from-red-600 to-pink-600 bg-clip-text text-transparent">
                 {subAdmins.filter(admin => admin.status === "inactive").length}
               </CardTitle>
+              <div className="h-1.5 bg-gradient-to-r from-red-500 to-pink-500 rounded-full mt-3" />
             </CardHeader>
           </Card>
         </div>
@@ -209,8 +227,9 @@ export default function SubAdminsPage() {
         {/* Sub Admin List */}
         <div className="space-y-4">
           {subAdmins.map((admin) => (
-            <Card key={admin.id}>
-              <CardContent className="pt-6">
+            <Card key={admin.id} className="group bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl border border-white/60 dark:border-gray-700/60 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-1 overflow-hidden relative">
+              <div className="absolute inset-0 bg-linear-to-br from-violet-400/5 to-fuchsia-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <CardContent className="pt-6 relative">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   {/* Admin Info */}
                   <div className="flex items-start gap-4 flex-1">

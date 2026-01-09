@@ -36,7 +36,6 @@ const mockPendingDoctors = [
     specialization: "Pediatrics",
     license: "MD-67890-NY",
     experience: "5 years",
-    hospitalAffiliation: "Children's Healthcare",
     details: "Applying for doctor account with telemedicine capability",
     avatar: "",
     status: "pending" as const,
@@ -49,7 +48,6 @@ const mockPendingDoctors = [
     specialization: "Dermatology",
     license: "MD-11111-TX",
     experience: "12 years",
-    hospitalAffiliation: "Medical Center",
     details: "Request for professional verification and network access",
     avatar: "",
     status: "pending" as const,
@@ -66,11 +64,9 @@ const mockApprovedDoctors = [
     specialization: "Internal Medicine",
     license: "MD-22222-FL",
     experience: "10 years",
-    hospitalAffiliation: "Regional Hospital",
     details: "Professional verification completed",
     avatar: "",
     status: "approved" as const,
-    remarks: "All documents verified and credentials confirmed",
   },
   {
     id: 5,
@@ -81,11 +77,9 @@ const mockApprovedDoctors = [
     specialization: "Orthopedics",
     license: "MD-33333-CA",
     experience: "15 years",
-    hospitalAffiliation: "Trauma Center",
     details: "Verification completed successfully",
     avatar: "",
     status: "approved" as const,
-    remarks: "License and credentials verified. Account activated.",
   },
 ];
 
@@ -99,7 +93,6 @@ type DoctorApplication = {
   specialization: string;
   license: string;
   experience: string;
-  hospitalAffiliation: string;
   details: string;
   avatar: string;
   status: "pending" | "approved" | "rejected";
@@ -123,39 +116,70 @@ export default function AdminPanel() {
     setIsDialogOpen(true);
   };
 
-  const handleConfirmAction = () => {
-    if (!selectedDoctor || !actionType || !remarks.trim()) return;
+  const handleDirectApprove = (doctor: DoctorApplication) => {
+    console.log("Approving doctor:", doctor.name);
+    const currentDate = new Date().toISOString().split('T')[0];
+    
+    // Remove from pending using functional update
+    setPendingDoctors(prev => {
+      console.log("Previous pending:", prev.length);
+      const filtered = prev.filter(d => d.id !== doctor.id);
+      console.log("After filter:", filtered.length);
+      return filtered;
+    });
+    
+    // Add to approved directly without dialog using functional update
+    setApprovedDoctors(prev => {
+      console.log("Previous approved:", prev.length);
+      const updated = [
+        ...prev,
+        { 
+          ...doctor, 
+          approvedDate: currentDate,
+          status: "approved" as const
+        }
+      ];
+      console.log("After adding:", updated.length);
+      return updated;
+    });
+  };
 
+  const handleConfirmAction = () => {
+    if (!selectedDoctor || !actionType) return;
+    
+    // Only require remarks for rejection
+    if (actionType === "reject" && !remarks.trim()) {
+      alert("Please provide a rejection reason");
+      return;
+    }
+
+    console.log("Rejecting doctor:", selectedDoctor.name);
     const currentDate = new Date().toISOString().split('T')[0];
 
-    if (actionType === "approve") {
-      // Remove from pending
-      setPendingDoctors(pendingDoctors.filter(d => d.id !== selectedDoctor.id));
+    if (actionType === "reject") {
+      // Remove from pending using functional update
+      setPendingDoctors(prev => {
+        console.log("Previous pending:", prev.length);
+        const filtered = prev.filter(d => d.id !== selectedDoctor.id);
+        console.log("After filter:", filtered.length);
+        return filtered;
+      });
       
-      // Add to approved with remarks
-      setApprovedDoctors([
-        ...approvedDoctors,
-        { 
-          ...selectedDoctor, 
-          approvedDate: currentDate,
-          status: "approved" as const,
-          remarks: remarks.trim()
-        }
-      ]);
-    } else if (actionType === "reject") {
-      // Remove from pending
-      setPendingDoctors(pendingDoctors.filter(d => d.id !== selectedDoctor.id));
-      
-      // Add to rejected with remarks
-      setRejectedDoctors([
-        ...rejectedDoctors,
-        { 
-          ...selectedDoctor, 
-          rejectedDate: currentDate,
-          status: "rejected" as const,
-          remarks: remarks.trim()
-        }
-      ]);
+      // Add to rejected with required remarks using functional update
+      setRejectedDoctors(prev => {
+        console.log("Previous rejected:", prev.length);
+        const updated = [
+          ...prev,
+          { 
+            ...selectedDoctor, 
+            rejectedDate: currentDate,
+            status: "rejected" as const,
+            remarks: remarks.trim()
+          }
+        ];
+        console.log("After adding:", updated.length);
+        return updated;
+      });
     }
 
     // Close dialog and reset state
@@ -166,14 +190,19 @@ export default function AdminPanel() {
   };
 
   const handleReject = (doctorId: number) => {
+    console.log("Reject button clicked for doctor ID:", doctorId);
     const doctor = pendingDoctors.find(d => d.id === doctorId);
     if (doctor) {
+      console.log("Found doctor:", doctor.name);
       openActionDialog(doctor, "reject");
+    } else {
+      console.log("Doctor not found!");
     }
   };
 
   const handleApprove = (doctor: DoctorApplication) => {
-    openActionDialog(doctor, "approve");
+    console.log("Approve button clicked for:", doctor.name);
+    handleDirectApprove(doctor);
   };
 
   const getInitials = (name: string) => {
@@ -185,21 +214,38 @@ export default function AdminPanel() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-linear-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-950 dark:via-indigo-950 dark:to-purple-950 relative overflow-hidden">
+      {/* Animated Background Orbs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-400/20 dark:bg-blue-600/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-400/20 dark:bg-purple-600/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}} />
+        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-indigo-400/20 dark:bg-indigo-600/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}} />
+      </div>
+
       {/* Header */}
-      <div className="border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+      <div className="relative border-b border-white/20 bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold">Doctor Verification & Approval</h1>
-              <p className="text-muted-foreground">Manage doctor applications and professional verifications</p>
+              <h1 className="text-4xl font-bold bg-linear-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">Doctor Verification & Approval</h1>
+              <p className="text-gray-600 dark:text-gray-300 flex items-center gap-2">
+                <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                Manage doctor applications and professional verifications
+              </p>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => router.push("/admin/sub-admins")}>
+            <div className="flex gap-3">
+              <Button 
+                onClick={() => router.push("/admin/sub-admins")}
+                className="bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-700 backdrop-blur-md border border-blue-200/50 dark:border-gray-600/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 text-gray-900 dark:text-gray-100 font-medium"
+              >
                 <Users className="h-4 w-4 mr-2" />
                 Sub Admins
               </Button>
-              <Button variant="outline" onClick={() => router.push("/admin/features")}>
+              <Button 
+                onClick={() => router.push("/admin/features")}
+                className="bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-700 backdrop-blur-md border border-purple-200/50 dark:border-gray-600/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 text-gray-900 dark:text-gray-100 font-medium"
+              >
+                <Settings className="h-4 w-4 mr-2" />
                 Manage Features
               </Button>
             </div>
@@ -207,36 +253,54 @@ export default function AdminPanel() {
         </div>
       </div>
 
-      {/* Navigation Cards */}
-      <div className="max-w-7xl mx-auto p-4 md:p-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-orange-500" />
-                <CardDescription>Pending Applications</CardDescription>
+      {/* Stats Cards */}
+      <div className="max-w-7xl mx-auto p-4 md:p-8 relative">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card className="group cursor-pointer bg-white/80 dark:bg-gray-900/80 hover:bg-white/95 dark:hover:bg-gray-900/95 backdrop-blur-xl border-white/60 dark:border-gray-700/60 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 overflow-hidden relative">
+            <div className="absolute inset-0 bg-linear-to-br from-orange-500/10 to-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+            <CardHeader className="pb-4 relative">
+              <div className="flex items-center justify-between mb-3">
+                <div className="p-3 bg-linear-to-br from-orange-500 to-red-500 rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <Users className="h-6 w-6 text-white" />
+                </div>
+                <div className="text-right">
+                  <CardDescription className="text-xs font-medium text-gray-600 dark:text-gray-400">Pending Applications</CardDescription>
+                  <CardTitle className="text-4xl font-bold bg-linear-to-br from-orange-600 to-red-600 bg-clip-text text-transparent mt-1">{pendingDoctors.length}</CardTitle>
+                </div>
               </div>
-              <CardTitle className="text-3xl">{pendingDoctors.length}</CardTitle>
+              <div className="h-1.5 bg-gradient-to-r from-orange-500 to-red-500 rounded-full" />
             </CardHeader>
           </Card>
           
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <UserCheck className="h-5 w-5 text-green-500" />
-                <CardDescription>Approved Doctors</CardDescription>
+          <Card className="group cursor-pointer bg-white/80 dark:bg-gray-900/80 hover:bg-white/95 dark:hover:bg-gray-900/95 backdrop-blur-xl border-white/60 dark:border-gray-700/60 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 overflow-hidden relative">
+            <div className="absolute inset-0 bg-linear-to-br from-green-500/10 to-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+            <CardHeader className="pb-4 relative">
+              <div className="flex items-center justify-between mb-3">
+                <div className="p-3 bg-linear-to-br from-green-500 to-emerald-500 rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <UserCheck className="h-6 w-6 text-white" />
+                </div>
+                <div className="text-right">
+                  <CardDescription className="text-xs font-medium text-gray-600 dark:text-gray-400">Approved Doctors</CardDescription>
+                  <CardTitle className="text-4xl font-bold bg-linear-to-br from-green-600 to-emerald-600 bg-clip-text text-transparent mt-1">{approvedDoctors.length}</CardTitle>
+                </div>
               </div>
-              <CardTitle className="text-3xl">{approvedDoctors.length}</CardTitle>
+              <div className="h-1.5 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full" />
             </CardHeader>
           </Card>
           
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-purple-500" />
-                <CardDescription>Total Doctors</CardDescription>
+          <Card className="group cursor-pointer bg-white/80 dark:bg-gray-900/80 hover:bg-white/95 dark:hover:bg-gray-900/95 backdrop-blur-xl border-white/60 dark:border-gray-700/60 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 overflow-hidden relative">
+            <div className="absolute inset-0 bg-linear-to-br from-purple-500/10 to-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+            <CardHeader className="pb-4 relative">
+              <div className="flex items-center justify-between mb-3">
+                <div className="p-3 bg-linear-to-br from-purple-500 to-indigo-500 rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <BarChart3 className="h-6 w-6 text-white" />
+                </div>
+                <div className="text-right">
+                  <CardDescription className="text-xs font-medium text-gray-600 dark:text-gray-400">Total Doctors</CardDescription>
+                  <CardTitle className="text-4xl font-bold bg-linear-to-br from-purple-600 to-indigo-600 bg-clip-text text-transparent mt-1">{approvedDoctors.length + pendingDoctors.length + rejectedDoctors.length}</CardTitle>
+                </div>
               </div>
-              <CardTitle className="text-3xl">{approvedDoctors.length + pendingDoctors.length + rejectedDoctors.length}</CardTitle>
+              <div className="h-1.5 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full" />
             </CardHeader>
           </Card>
         </div>
@@ -265,55 +329,84 @@ export default function AdminPanel() {
               </Card>
             ) : (
               pendingDoctors.map((doctor) => (
-                <Card key={doctor.id}>
-                  <CardContent className="pt-6">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <Card key={doctor.id} className="group overflow-hidden bg-white/80 dark:bg-gray-900/80 hover:bg-white/95 dark:hover:bg-gray-900/95 backdrop-blur-xl border border-white/60 dark:border-gray-700/60 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 relative">
+                  <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-linear-to-b from-orange-400 via-red-400 to-pink-400 pointer-events-none" />
+                  <div className="absolute inset-0 bg-linear-to-br from-orange-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                  <CardContent className="pt-6 relative z-10">
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
                       {/* Doctor Info */}
                       <div className="flex items-start gap-4 flex-1">
-                        <Avatar className="h-12 w-12">
-                          <AvatarImage src={doctor.avatar} alt={doctor.name} />
-                          <AvatarFallback>{getInitials(doctor.name)}</AvatarFallback>
-                        </Avatar>
+                        <div className="relative">
+                          <Avatar className="h-16 w-16 ring-4 ring-orange-100 dark:ring-orange-900">
+                            <AvatarImage src={doctor.avatar} alt={doctor.name} />
+                            <AvatarFallback className="bg-linear-to-br from-orange-400 to-orange-600 text-white text-lg font-bold">{getInitials(doctor.name)}</AvatarFallback>
+                          </Avatar>
+                          <div className="absolute -top-1 -right-1 h-5 w-5 bg-orange-500 rounded-full animate-pulse" />
+                        </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold text-lg">{doctor.name}</h3>
-                            <Badge variant="outline">Pending</Badge>
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="font-bold text-xl bg-linear-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">{doctor.name}</h3>
+                            <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300 border-orange-300">Pending Review</Badge>
                           </div>
-                          <p className="text-sm text-muted-foreground mb-1">{doctor.email}</p>
-                          <div className="grid grid-cols-2 gap-2 text-sm mb-2">
-                            <div>
-                              <span className="font-medium">Specialization:</span> {doctor.specialization}
-                            </div>
-                            <div>
-                              <span className="font-medium">License:</span> {doctor.license}
-                            </div>
-                            <div>
-                              <span className="font-medium">Experience:</span> {doctor.experience}
-                            </div>
-                            <div>
-                              <span className="font-medium">Hospital:</span> {doctor.hospitalAffiliation}
-                            </div>
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            Applied on: {doctor.applicationDate}
+                          <p className="text-sm text-muted-foreground mb-3 flex items-center gap-1">
+                            <span className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                            {doctor.email}
                           </p>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                            <div className="flex items-center gap-2 p-2 bg-linear-to-r from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 rounded-lg">
+                              <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold">S</div>
+                              <div>
+                                <p className="text-xs text-muted-foreground">Specialization</p>
+                                <p className="font-semibold text-sm">{doctor.specialization}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 p-2 bg-linear-to-r from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 rounded-lg">
+                              <div className="h-8 w-8 rounded-full bg-purple-500 flex items-center justify-center text-white text-xs font-bold">L</div>
+                              <div>
+                                <p className="text-xs text-muted-foreground">License</p>
+                                <p className="font-semibold text-sm">{doctor.license}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 p-2 bg-linear-to-r from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 rounded-lg">
+                              <div className="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center text-white text-xs font-bold">E</div>
+                              <div>
+                                <p className="text-xs text-muted-foreground">Experience</p>
+                                <p className="font-semibold text-sm">{doctor.experience}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 p-2 bg-linear-to-r from-amber-50 to-amber-100 dark:from-amber-950 dark:to-amber-900 rounded-lg">
+                              <div className="h-8 w-8 rounded-full bg-amber-500 flex items-center justify-center text-white text-xs font-bold">📅</div>
+                              <div>
+                                <p className="text-xs text-muted-foreground">Applied</p>
+                                <p className="font-semibold text-sm">{doctor.applicationDate}</p>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
 
                       {/* Actions */}
-                      <div className="flex gap-2 md:flex-col lg:flex-row">
+                      <div className="flex gap-3 md:flex-col">
                         <Button
-                          onClick={() => handleApprove(doctor)}
-                          className="flex-1 md:flex-none bg-green-600 hover:bg-green-700"
+                          onClick={() => {
+                            console.log("Button clicked!", doctor);
+                            handleApprove(doctor);
+                          }}
+                          className="flex-1 md:flex-none bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 font-semibold"
+                          size="lg"
                         >
-                          Approve
+                          ✓ Approve
                         </Button>
                         <Button
-                          onClick={() => handleReject(doctor.id)}
+                          onClick={() => {
+                            console.log("Reject button clicked!", doctor.id);
+                            handleReject(doctor.id);
+                          }}
                           variant="outline"
-                          className="flex-1 md:flex-none"
+                          className="flex-1 md:flex-none border-2 border-red-200 hover:bg-red-50 hover:border-red-300 dark:border-red-800 dark:hover:bg-red-950 text-red-600 dark:text-red-400 font-semibold"
+                          size="lg"
                         >
-                          Reject
+                          ✕ Reject
                         </Button>
                       </div>
                     </div>
@@ -333,30 +426,28 @@ export default function AdminPanel() {
               </Card>
             ) : (
               approvedDoctors.map((doctor) => (
-                <Card key={doctor.id}>
+                <Card key={doctor.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 border-l-4 border-l-green-500">
                   <CardContent className="pt-6">
-                    <div className="flex flex-col md:flex-row md:items-center gap-4">
+                    <div className="flex flex-col md:flex-row md:items-start gap-4">
                       <div className="flex items-start gap-4 flex-1">
-                        <Avatar className="h-12 w-12">
+                        <Avatar className="h-14 w-14 ring-4 ring-green-100 dark:ring-green-900">
                           <AvatarImage src={doctor.avatar} alt={doctor.name} />
-                          <AvatarFallback>{getInitials(doctor.name)}</AvatarFallback>
+                          <AvatarFallback className="bg-linear-to-br from-green-400 to-green-600 text-white font-bold">{getInitials(doctor.name)}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold text-lg">{doctor.name}</h3>
-                            <Badge className="bg-green-500 hover:bg-green-600">Approved</Badge>
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="font-bold text-lg">{doctor.name}</h3>
+                            <Badge className="bg-linear-to-r from-green-500 to-green-600 text-white border-0 shadow-sm">✓ Approved</Badge>
                           </div>
-                          <p className="text-sm text-muted-foreground mb-1">{doctor.email}</p>
-                          <div className="grid grid-cols-2 gap-2 text-sm mb-2">
-                            <div><span className="font-medium">Specialization:</span> {doctor.specialization}</div>
-                            <div><span className="font-medium">License:</span> {doctor.license}</div>
-                            <div><span className="font-medium">Experience:</span> {doctor.experience}</div>
-                            <div><span className="font-medium">Hospital:</span> {doctor.hospitalAffiliation}</div>
+                          <p className="text-sm text-muted-foreground mb-3">{doctor.email}</p>
+                          <div className="grid grid-cols-3 gap-2 text-sm mb-2">
+                            <div className="p-2 bg-green-50 dark:bg-green-950 rounded"><span className="font-medium">Specialization:</span> {doctor.specialization}</div>
+                            <div className="p-2 bg-green-50 dark:bg-green-950 rounded"><span className="font-medium">License:</span> {doctor.license}</div>
+                            <div className="p-2 bg-green-50 dark:bg-green-950 rounded"><span className="font-medium">Experience:</span> {doctor.experience}</div>
                           </div>
                           <div className="text-xs text-muted-foreground space-y-1">
-                            <p>Applied: {doctor.applicationDate}</p>
-                            {doctor.approvedDate && <p>Approved: {doctor.approvedDate}</p>}
-                            {doctor.remarks && <p className="text-green-600 dark:text-green-400 mt-2 text-sm font-medium">Approval Notes: {doctor.remarks}</p>}
+                            <p className="flex items-center gap-2"><span className="text-green-500">●</span> Applied: {doctor.applicationDate}</p>
+                            {doctor.approvedDate && <p className="flex items-center gap-2"><span className="text-green-500">✓</span> Approved: {doctor.approvedDate}</p>}
                           </div>
                         </div>
                       </div>
@@ -377,30 +468,34 @@ export default function AdminPanel() {
               </Card>
             ) : (
               rejectedDoctors.map((doctor) => (
-                <Card key={doctor.id}>
+                <Card key={doctor.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 border-l-4 border-l-red-500">
                   <CardContent className="pt-6">
-                    <div className="flex flex-col md:flex-row md:items-center gap-4">
+                    <div className="flex flex-col md:flex-row md:items-start gap-4">
                       <div className="flex items-start gap-4 flex-1">
-                        <Avatar className="h-12 w-12">
+                        <Avatar className="h-14 w-14 ring-4 ring-red-100 dark:ring-red-900">
                           <AvatarImage src={doctor.avatar} alt={doctor.name} />
-                          <AvatarFallback>{getInitials(doctor.name)}</AvatarFallback>
+                          <AvatarFallback className="bg-linear-to-br from-red-400 to-red-600 text-white font-bold">{getInitials(doctor.name)}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold text-lg">{doctor.name}</h3>
-                            <Badge className="bg-red-500 hover:bg-red-600">Rejected</Badge>
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="font-bold text-lg">{doctor.name}</h3>
+                            <Badge className="bg-linear-to-r from-red-500 to-red-600 text-white border-0 shadow-sm">✕ Rejected</Badge>
                           </div>
-                          <p className="text-sm text-muted-foreground mb-1">{doctor.email}</p>
-                          <div className="grid grid-cols-2 gap-2 text-sm mb-2">
-                            <div><span className="font-medium">Specialization:</span> {doctor.specialization}</div>
-                            <div><span className="font-medium">License:</span> {doctor.license}</div>
-                            <div><span className="font-medium">Experience:</span> {doctor.experience}</div>
-                            <div><span className="font-medium">Hospital:</span> {doctor.hospitalAffiliation}</div>
+                          <p className="text-sm text-muted-foreground mb-3">{doctor.email}</p>
+                          <div className="grid grid-cols-3 gap-2 text-sm mb-2">
+                            <div className="p-2 bg-red-50 dark:bg-red-950 rounded"><span className="font-medium">Specialization:</span> {doctor.specialization}</div>
+                            <div className="p-2 bg-red-50 dark:bg-red-950 rounded"><span className="font-medium">License:</span> {doctor.license}</div>
+                            <div className="p-2 bg-red-50 dark:bg-red-950 rounded"><span className="font-medium">Experience:</span> {doctor.experience}</div>
                           </div>
-                          <div className="text-xs text-muted-foreground space-y-1">
-                            <p>Applied: {doctor.applicationDate}</p>
-                            {doctor.rejectedDate && <p>Rejected: {doctor.rejectedDate}</p>}
-                            {doctor.remarks && <p className="text-red-600 dark:text-red-400 mt-2 text-sm font-medium">Rejection Reason: {doctor.remarks}</p>}
+                          <div className="text-xs text-muted-foreground space-y-2">
+                            <p className="flex items-center gap-2"><span className="text-red-500">●</span> Applied: {doctor.applicationDate}</p>
+                            {doctor.rejectedDate && <p className="flex items-center gap-2"><span className="text-red-500">✕</span> Rejected: {doctor.rejectedDate}</p>}
+                            {doctor.remarks && (
+                              <div className="mt-3 p-3 bg-red-50 dark:bg-red-950 border-l-4 border-red-500 rounded">
+                                <p className="text-xs font-semibold text-red-600 dark:text-red-400 mb-1">Rejection Reason:</p>
+                                <p className="text-sm text-red-700 dark:text-red-300">{doctor.remarks}</p>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -416,14 +511,9 @@ export default function AdminPanel() {
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>
-                {actionType === "approve" ? "Approve Doctor Application" : "Reject Doctor Application"}
-              </DialogTitle>
+              <DialogTitle>Reject Doctor Application</DialogTitle>
               <DialogDescription>
-                {actionType === "approve" 
-                  ? "Please provide verification notes or approval reason for this doctor."
-                  : "Please provide reason for rejecting this doctor's application."
-                }
+                Please provide a reason for rejecting this doctor's application.
               </DialogDescription>
             </DialogHeader>
             
@@ -441,16 +531,18 @@ export default function AdminPanel() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="remarks">
-                    {actionType === "approve" ? "Verification Notes *" : "Rejection Reason *"}
-                  </Label>
+                  <Label htmlFor="remarks">Rejection Reason *</Label>
                   <Textarea
                     id="remarks"
-                    placeholder={`Enter your ${actionType === "approve" ? "approval notes" : "rejection reason"}...`}
+                    placeholder="Please specify the reason for rejection (required)..."
                     value={remarks}
                     onChange={(e) => setRemarks(e.target.value)}
                     rows={3}
+                    className="border-red-300 focus:border-red-500"
                   />
+                  {!remarks.trim() && (
+                    <p className="text-xs text-red-500">Rejection reason is required</p>
+                  )}
                 </div>
               </div>
             )}
@@ -462,9 +554,9 @@ export default function AdminPanel() {
               <Button 
                 onClick={handleConfirmAction}
                 disabled={!remarks.trim()}
-                className={actionType === "reject" ? "bg-red-500 hover:bg-red-600" : "bg-green-600 hover:bg-green-700"}
+                className="bg-red-500 hover:bg-red-600"
               >
-                {actionType === "approve" ? "Approve Doctor" : "Reject Application"}
+                ✕ Reject Application
               </Button>
             </DialogFooter>
           </DialogContent>
