@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { Eye, EyeOff, Lock, User } from "lucide-react";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -19,7 +19,7 @@ export default function LoginPage() {
     setIsLoading(true);
     
     setTimeout(() => {
-      console.log("Login attempt:", { email, password });
+      console.log("Login attempt:", { username, password });
       setIsLoading(false);
     }, 1000);
   };
@@ -61,18 +61,18 @@ export default function LoginPage() {
           <CardContent className="space-y-6">
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Email Address
+                <User className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <Label htmlFor="username" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Username
                 </Label>
               </div>
               <div className="relative">
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  id="username"
+                  type="text"
+                  placeholder="john_doe"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   required
                   disabled={isLoading}
                   className="bg-white/50 dark:bg-gray-800/50 border-gray-300 dark:border-gray-600 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 transition-all duration-200"

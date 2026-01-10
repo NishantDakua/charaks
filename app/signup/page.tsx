@@ -7,14 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { User, Mail, Lock, Eye, EyeOff, Check } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { User, Mail, Lock, Eye, EyeOff, Check, UserCheck } from "lucide-react";
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
+    username: "",
     password: "",
     confirmPassword: "",
+    role: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -28,6 +29,13 @@ export default function SignupPage() {
     });
   };
 
+  const handleRoleChange = (value: string) => {
+    setFormData({
+      ...formData,
+      role: value,
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -38,6 +46,11 @@ export default function SignupPage() {
 
     if (!acceptTerms) {
       alert("Please accept the terms and conditions");
+      return;
+    }
+
+    if (!formData.role) {
+      alert("Please select a role");
       return;
     }
 
@@ -102,16 +115,16 @@ export default function SignupPage() {
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                <Label htmlFor="fullName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Full Name
+                <Label htmlFor="username" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Username
                 </Label>
               </div>
               <Input
-                id="fullName"
-                name="fullName"
+                id="username"
+                name="username"
                 type="text"
-                placeholder="John Doe"
-                value={formData.fullName}
+                placeholder="john_doe"
+                value={formData.username}
                 onChange={handleChange}
                 required
                 disabled={isLoading}
@@ -121,22 +134,20 @@ export default function SignupPage() {
             
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Email Address
+                <UserCheck className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <Label htmlFor="role" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Role
                 </Label>
               </div>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="name@example.com"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                disabled={isLoading}
-                className="bg-white/50 dark:bg-gray-800/50 border-gray-300 dark:border-gray-600 focus:border-cyan-500 dark:focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20 transition-all duration-200"
-              />
+              <Select value={formData.role} onValueChange={handleRoleChange} disabled={isLoading}>
+                <SelectTrigger className="bg-white/50 dark:bg-gray-800/50 border-gray-300 dark:border-gray-600 focus:border-cyan-500 dark:focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20 transition-all duration-200">
+                  <SelectValue placeholder="Select your role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="subadmin">Sub Admin</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             
             <div className="space-y-3">

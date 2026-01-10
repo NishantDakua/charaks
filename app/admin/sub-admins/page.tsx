@@ -17,6 +17,7 @@ const mockSubAdmins = [
   {
     id: 1,
     name: "Alex Johnson",
+    username: "alex_moderator",
     email: "alex@admin.com",
     role: "Content Moderator",
     status: "active",
@@ -26,6 +27,7 @@ const mockSubAdmins = [
   {
     id: 2,
     name: "Maria Garcia",
+    username: "maria_support",
     email: "maria@admin.com",
     role: "User Support",
     status: "active",
@@ -35,6 +37,7 @@ const mockSubAdmins = [
   {
     id: 3,
     name: "James Wilson",
+    username: "james_tech_admin",
     email: "james@admin.com",
     role: "Technical Admin",
     status: "inactive",
@@ -46,6 +49,7 @@ const mockSubAdmins = [
 type SubAdmin = {
   id: number;
   name: string;
+  username: string;
   email: string;
   role: string;
   status: string;
@@ -55,7 +59,7 @@ type SubAdmin = {
 
 export default function SubAdminsPage() {
   const [subAdmins, setSubAdmins] = useState<SubAdmin[]>(mockSubAdmins);
-  const [newAdmin, setNewAdmin] = useState({ name: "", email: "", role: "" });
+  const [newAdmin, setNewAdmin] = useState({ name: "", username: "", email: "", role: "" });
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [adminToDelete, setAdminToDelete] = useState<SubAdmin | null>(null);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -71,15 +75,17 @@ export default function SubAdminsPage() {
 
   const handleAddAdmin = () => {
     if (newAdmin.name && newAdmin.email && newAdmin.role) {
+      const generatedUsername = newAdmin.username || newAdmin.name.toLowerCase().replace(/\s+/g, '_') + '_admin';
       const newSubAdmin: SubAdmin = {
         id: Date.now(),
         ...newAdmin,
+        username: generatedUsername,
         status: "active",
         joinDate: new Date().toISOString().split('T')[0],
         permissions: ["view_users"],
       };
       setSubAdmins([...subAdmins, newSubAdmin]);
-      setNewAdmin({ name: "", email: "", role: "" });
+      setNewAdmin({ name: "", username: "", email: "", role: "" });
       setIsDialogOpen(false);
     }
   };
@@ -156,6 +162,15 @@ export default function SubAdminsPage() {
                       value={newAdmin.name}
                       onChange={(e) => setNewAdmin({...newAdmin, name: e.target.value})}
                       placeholder="Enter full name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="username">Username</Label>
+                    <Input
+                      id="username"
+                      value={newAdmin.username}
+                      onChange={(e) => setNewAdmin({...newAdmin, username: e.target.value})}
+                      placeholder="Enter username (auto-generated if empty)"
                     />
                   </div>
                   <div>
@@ -243,6 +258,9 @@ export default function SubAdminsPage() {
                           {admin.status}
                         </Badge>
                       </div>
+                      <p className="text-sm text-muted-foreground mb-1">
+                        <strong>@{admin.username}</strong>
+                      </p>
                       <p className="text-sm text-muted-foreground mb-1">{admin.email}</p>
                       <p className="text-sm mb-2">Role: {admin.role}</p>
                       <p className="text-xs text-muted-foreground mb-2">
