@@ -2,26 +2,102 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye, EyeOff, Lock, User } from "lucide-react";
+import { authApi, setAuthToken } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    setTimeout(() => {
-      console.log("Login attempt:", { username, password });
+    try {
+      const response = await authApi.login({ username, password });
+      console.log('Frontend received response:', response);
+      
+      if (response.success) {
+        // Handle both response structures: response.data or response directly
+        const token = response.data?.token || response.token;
+        const user = response.data || response.user;
+        
+        console.log('Full data object:', response.data);
+        console.log('Extracted token:', token, 'user:', user);
+        
+        // Check if we have a valid JWT token
+        if (token) {
+          // Store the REAL JWT token from backend
+          setAuthToken(token);
+          
+          // Store user data in localStorage
+          if (user && typeof window !== 'undefined') {
+            localStorage.setItem('currentUser', JSON.stringify(user));
+          }
+          
+          console.log('✅ JWT token stored successfully');
+          
+          toast({
+            title: "Login Successful!",
+            description: user && 'username' in user ? `Welcome back, ${user.username}!` : "Welcome back!",
+          });
+          
+          // Redirect to admin dashboard
+          setTimeout(() => {
+            router.push("/admin");
+          }, 1000);
+        } else if (user && 'id' in user && user.id) {
+          // FALLBACK: If no token but user exists (old backend behavior)
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            setAuthToken('temp-token-' + user.id);
+          }
+          
+          console.warn('⚠️ BACKEND WARNING: No JWT token returned. Using temporary auth.');
+          
+          toast({
+            title: "Login Successful!",
+            description: 'username' in user ? `Welcome back, ${user.username}!` : "Welcome back!",
+          });
+          
+          setTimeout(() => {
+            router.push("/admin");
+          }, 1000);
+        } else {
+          console.error('Invalid response structure:', response);
+          toast({
+            title: "Login Failed",
+            description: "Invalid server response. Check console for details.",
+            variant: "destructive",
+          });
+        }
+      } else {
+        toast({
+          title: "Login Failed",
+          description: response.message || "Invalid credentials. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Login error:", error);
+      toast({
+        title: "Error",
+        description: error.message || "An error occurred during login. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (

@@ -59,5 +59,13 @@ export interface AuthResponse {
     username: string;
     role: string;
   };
+  data?: {
+    token: string;
+    user: {
+      id: string;
+      username: string;
+      role: string;
+    };
+  };
   message?: string;
 }

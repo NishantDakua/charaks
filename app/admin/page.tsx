@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { adminApi } from "@/lib/api";
 import { Doctor } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
+import { isAuthenticated } from "@/lib/auth-utils";
 
 export default function AdminPanel() {
   const [pendingDoctors, setPendingDoctors] = useState<Doctor[]>([]);
@@ -29,10 +30,65 @@ export default function AdminPanel() {
   const router = useRouter();
   const { toast } = useToast();
 
-  // Fetch pending doctors on mount
+  // Check authentication and fetch pending doctors on mount
   useEffect(() => {
-    fetchPendingDoctors();
-  }, []);
+    // Check if user is authenticated
+    if (!isAuthenticated()) {
+      toast({
+        title: "Authentication Required",
+        description: "Please login to access the admin dashboard.",
+        variant: "destructive",
+      });
+      router.push("/login");
+      return;
+    }
+    
+    fetchAllDoctors();
+  }, [router, toast]);
+
+  const fetchAllDoctors = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Fetch pending doctors
+      const pendingRes = await adminApi.getPendingDoctors();
+      
+      if (pendingRes.success && pendingRes.data) {
+        setPendingDoctors(pendingRes.data);
+      }
+      
+      // Try to fetch approved and rejected doctors if backend supports it
+      try {
+        const approvedRes = await adminApi.getApprovedDoctors();
+        if (approvedRes.success && approvedRes.data) {
+          setApprovedDoctors(approvedRes.data);
+        }
+      } 
+      catch (err) {
+        // Backend doesn't support approved endpoint yet
+        console.log('Approved doctors endpoint not available');
+      }
+      
+      try {
+        const rejectedRes = await adminApi.getRejectedDoctors();
+        if (rejectedRes.success && rejectedRes.data) {
+          setRejectedDoctors(rejectedRes.data);
+        }
+      } catch (err) {
+        // Backend doesn't support rejected endpoint yet
+        console.log('Rejected doctors endpoint not available');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to fetch doctors. Please check your connection.",
+        variant: "destructive",
+      });
+      console.error("Error fetching doctors:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const fetchPendingDoctors = async () => {
     try {
@@ -72,18 +128,22 @@ export default function AdminPanel() {
       setIsActionLoading(true);
       const response = await adminApi.approveDoctor(doctor.id);
       
-      if (response.success) {
+      console.log('Approve response received:', response);
+      
+      if (response.success || response.data) {
         // Remove from pending
         setPendingDoctors(prev => prev.filter(d => d.id !== doctor.id));
         
-        // Add to approved
-        setApprovedDoctors(prev => [...prev, { ...doctor, isApproved: true }]);
+        // Add to approved - use returned data if available, otherwise use local doctor object
+        const approvedDoctor = response.data || { ...doctor, isApproved: true };
+        setApprovedDoctors(prev => [...prev, approvedDoctor]);
         
         toast({
           title: "Success",
           description: `${doctor.fullName} has been approved successfully`,
         });
       } else {
+        console.error('Unexpected response structure:', response);
         toast({
           title: "Error",
           description: response.message || "Failed to approve doctor",

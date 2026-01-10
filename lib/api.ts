@@ -1,4 +1,5 @@
 import { ApiResponse, Doctor, LoginCredentials, AuthResponse } from './types';
+import { setCurrentUser, clearCurrentUser } from './auth-utils';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
@@ -51,7 +52,7 @@ async function fetchWithAuth(
 // Authentication APIs
 export const authApi = {
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
-    const response = await fetch(`${API_URL}/auth/login`, {
+    const response = await fetch(`${API_URL}/admin/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -59,17 +60,31 @@ export const authApi = {
       body: JSON.stringify(credentials),
     });
 
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('Login failed:', response.status, errorData);
+      return {
+        success: false,
+        message: errorData.message || `Server error: ${response.status}`,
+      };
+    }
+
     const data = await response.json();
+    console.log('Login response:', data);
     
     if (data.success && data.token) {
       setAuthToken(data.token);
+      // Store user data if available
+      if (data.user) {
+        setCurrentUser(data.user);
+      }
     }
 
     return data;
   },
 
   signup: async (signupData: any): Promise<AuthResponse> => {
-    const response = await fetch(`${API_URL}/auth/signup`, {
+    const response = await fetch(`${API_URL}/admin/signup`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -82,6 +97,7 @@ export const authApi = {
 
   logout: (): void => {
     removeAuthToken();
+    clearCurrentUser();
   },
 };
 
@@ -106,6 +122,44 @@ export const adminApi = {
     }
   },
 
+  // Get all approved doctors
+  getApprovedDoctors: async (): Promise<ApiResponse<Doctor[]>> => {
+    try {
+      const response = await fetchWithAuth('/admin/doctors/approved', {
+        method: 'GET',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to fetch approved doctors');
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('Error fetching approved doctors:', error);
+      throw error;
+    }
+  },
+
+  // Get all rejected doctors
+  getRejectedDoctors: async (): Promise<ApiResponse<Doctor[]>> => {
+    try {
+      const response = await fetchWithAuth('/admin/doctors/rejected', {
+        method: 'GET',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to fetch rejected doctors');
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('Error fetching rejected doctors:', error);
+      throw error;
+    }
+  },
+
   // Approve a doctor
   approveDoctor: async (doctorId: string): Promise<ApiResponse<Doctor>> => {
     try {
@@ -113,14 +167,25 @@ export const adminApi = {
         method: 'PUT',
       });
 
+      console.log('Approve doctor response status:', response.status);
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to approve doctor');
+        const errorText = await response.text();
+        console.error('Backend error response:', errorText);
+        
+        let error;
+        try {
+          error = JSON.parse(errorText);
+        } catch {
+          error = { message: errorText || `Server error: ${response.status}` };
+        }
+        
+        throw new Error(error.message || error.error || 'Failed to approve doctor');
       }
 
       return response.json();
-    } catch (error) {
-      console.error('Error approving doctor:', error);
+    } catch (error: any) {
+      console.error('Error approving doctor:', error.message || error);
       throw error;
     }
   },

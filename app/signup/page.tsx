@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +10,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { User, Mail, Lock, Eye, EyeOff, Check, UserCheck } from "lucide-react";
+import { authApi } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
@@ -21,6 +24,8 @@ export default function SignupPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const { toast } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -40,26 +45,69 @@ export default function SignupPage() {
     e.preventDefault();
     
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match!");
+      toast({
+        title: "Validation Error",
+        description: "Passwords do not match!",
+        variant: "destructive",
+      });
       return;
     }
 
     if (!acceptTerms) {
-      alert("Please accept the terms and conditions");
+      toast({
+        title: "Validation Error",
+        description: "Please accept the terms and conditions",
+        variant: "destructive",
+      });
       return;
     }
 
     if (!formData.role) {
-      alert("Please select a role");
+      toast({
+        title: "Validation Error",
+        description: "Please select a role",
+        variant: "destructive",
+      });
       return;
     }
 
     setIsLoading(true);
     
-    setTimeout(() => {
-      console.log("Signup attempt:", formData);
+    try {
+      // Call the signup API
+      const response = await authApi.signup({
+        username: formData.username,
+        password: formData.password,
+        role: formData.role,
+      });
+
+      if (response.success) {
+        toast({
+          title: "Success!",
+          description: "Account created successfully. Redirecting to login...",
+        });
+        
+        // Redirect to login page after 2 seconds
+        setTimeout(() => {
+          router.push("/login");
+        }, 2000);
+      } else {
+        toast({
+          title: "Signup Failed",
+          description: response.message || "Failed to create account. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Signup error:", error);
+      toast({
+        title: "Error",
+        description: error.message || "An error occurred during signup. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const passwordStrength = () => {
