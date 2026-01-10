@@ -49,6 +49,53 @@
   --sidebar-ring: oklch(0.60 0.15 175);
 }
 
+/* Custom styles for admin pages */
+.admin-gradient {
+  background: linear-gradient(135deg, oklch(0.995 0.002 180) 0%, oklch(0.97 0.02 175) 100%);
+}
+
+.admin-card {
+  backdrop-filter: blur(10px);
+  background: oklch(1 0 0 / 0.8);
+  border: 1px solid oklch(0.92 0.02 175);
+}
+
+.admin-header {
+  background: linear-gradient(90deg, oklch(0.60 0.15 175) 0%, oklch(0.70 0.20 45) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Animation improvements */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Status badge styles */
+.status-active {
+  background: linear-gradient(135deg, oklch(0.65 0.15 140) 0%, oklch(0.70 0.18 135) 100%);
+}
+
+.status-pending {
+  background: linear-gradient(135deg, oklch(0.70 0.20 45) 0%, oklch(0.75 0.18 50) 100%);
+}
+
+.status-rejected {
+  background: linear-gradient(135deg, oklch(0.55 0.22 25) 0%, oklch(0.60 0.20 20) 100%);
+}
+
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);

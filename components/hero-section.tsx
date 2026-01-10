@@ -12,9 +12,9 @@ export default function HeroSection() {
       <div className="absolute inset-0 gradient-mesh -z-10" />
       
       {/* Floating Decorative Elements */}
-      <div className="absolute top-32 right-[10%] w-96 h-96 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full blur-3xl animate-float opacity-60" />
-      <div className="absolute bottom-20 left-[5%] w-80 h-80 bg-gradient-to-br from-accent/20 to-accent/5 rounded-full blur-3xl animate-float-slow opacity-50" />
-      <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-gradient-to-br from-primary/10 to-accent/10 rounded-full blur-3xl animate-pulse opacity-40" />
+      <div className="absolute top-32 right-[10%] w-96 h-96 bg-linear-to-br from-primary/20 to-primary/5 rounded-full blur-3xl animate-float opacity-60" />
+      <div className="absolute bottom-20 left-[5%] w-80 h-80 bg-linear-to-br from-accent/20 to-accent/5 rounded-full blur-3xl animate-float-slow opacity-50" />
+      <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-linear-to-br from-primary/10 to-accent/10 rounded-full blur-3xl animate-pulse opacity-40" />
       
       {/* Grid Pattern Overlay */}
       <div className="absolute inset-0 opacity-[0.015] -z-5" style={{
@@ -41,7 +41,7 @@ export default function HeroSection() {
                 <br />
                 <span className="text-primary">Your Fingertips</span>
               </h1>
-              <div className="h-1.5 w-24 bg-gradient-to-r from-primary to-accent rounded-full" />
+              <div className="h-1.5 w-24 bg-linear-to-r from-primary to-accent rounded-full" />
             </div>
 
             {/* Description */}
@@ -56,7 +56,7 @@ export default function HeroSection() {
               <a href="/app-release.apk" download="Charak-App.apk" className="group">
                 <Button 
                   size="lg" 
-                  className="w-full sm:w-auto gap-3 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-semibold px-8 py-6 rounded-2xl shadow-xl shadow-primary/25 hover:shadow-2xl hover:shadow-primary/30 transition-all duration-300 hover:-translate-y-1"
+                  className="w-full sm:w-auto gap-3 bg-linear-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-semibold px-8 py-6 rounded-2xl shadow-xl shadow-primary/25 hover:shadow-2xl hover:shadow-primary/30 transition-all duration-300 hover:-translate-y-1"
                 >
                   <Download size={20} />
                   Download Free
@@ -108,35 +108,35 @@ export default function HeroSection() {
           {/* Right Content - Phone Mockup */}
           <div className="relative animate-slideInFromRight">
             {/* Glow Effect Behind Phone */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-accent/20 to-primary/30 rounded-[3rem] blur-3xl opacity-40 animate-pulse" />
+            <div className="absolute inset-0 bg-linear-to-br from-primary/30 via-accent/20 to-primary/30 rounded-[3rem] blur-3xl opacity-40 animate-pulse" />
             
             {/* Phone Frame */}
             <div className="relative mx-auto w-full max-w-md">
               {/* Decorative Ring */}
-              <div className="absolute -inset-4 bg-gradient-to-br from-primary/20 via-transparent to-accent/20 rounded-[3rem] animate-spin-slow opacity-50" />
+              <div className="absolute -inset-4 bg-linear-to-br from-primary/20 via-transparent to-accent/20 rounded-[3rem] animate-spin-slow opacity-50" />
               
               {/* Main Phone Container */}
-              <div className="relative bg-gradient-to-br from-white to-gray-50 p-3 rounded-[2.5rem] shadow-2xl shadow-primary/20">
+              <div className="relative bg-linear-to-br from-white to-gray-50 p-3 rounded-[2.5rem] shadow-2xl shadow-primary/20">
                 {/* Inner Phone Frame */}
-                <div className="relative bg-black rounded-[2rem] p-1.5 overflow-hidden">
+                <div className="relative bg-black rounded-4xl p-1.5 overflow-hidden">
                   {/* Notch */}
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-black rounded-b-2xl z-20" />
                   
                   {/* Screen Content */}
-                  <div className="relative rounded-[1.5rem] overflow-hidden">
+                  <div className="relative rounded-3xl overflow-hidden">
                     <img
                       src="/doctor-using-medical-app-consultation-interface.jpg"
                       alt="Charak App Interface"
-                      className="w-full aspect-[9/16] object-cover"
+                      className="w-full aspect-9/16 object-cover"
                     />
                     
                     {/* Overlay Gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-primary/40 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-linear-to-t from-primary/40 via-transparent to-transparent" />
                     
                     {/* Floating UI Elements */}
                     <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-md rounded-2xl p-4 shadow-xl">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center">
+                        <div className="w-12 h-12 bg-linear-to-br from-primary to-primary/80 rounded-full flex items-center justify-center">
                           <span className="text-white font-bold text-lg">Dr</span>
                         </div>
                         <div className="flex-1">
@@ -182,7 +182,7 @@ export default function HeroSection() {
       </div>
 
       {/* Bottom Wave */}
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-24 bg-linear-to-t from-white to-transparent" />
     </section>
   )
 }

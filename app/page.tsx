@@ -43,7 +43,7 @@ export default function Home() {
       <DownloadSection />
 
       {/* Premium Footer */}
-      <footer className="bg-gradient-to-b from-gray-50 to-white border-t border-gray-100 relative overflow-hidden">
+      <footer className="bg-linear-to-b from-gray-50 to-white border-t border-gray-100 relative overflow-hidden">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl -translate-y-1/2" />
         <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-accent/5 rounded-full blur-3xl translate-y-1/2" />
 
@@ -52,7 +52,7 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-8">
               <div className="lg:col-span-2">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="p-1.5 bg-gradient-to-br from-primary/10 to-accent/10 rounded-full">
+                  <div className="p-1.5 bg-linear-to-br from-primary/10 to-accent/10 rounded-full">
                     <img
                       src="/logo.png"
                       alt="Charak Logo"

@@ -1,7 +1,10 @@
 "use client"
-import { useState } from "react"
-import { Menu, X, ChevronRight } from "lucide-react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { Menu, X, ChevronRight, LogOut, User as UserIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { removeAuthToken } from "@/lib/api"
+import { isAuthenticated } from "@/lib/auth-utils"
 
 interface NavigationProps {
   isScrolled: boolean
@@ -9,6 +12,19 @@ interface NavigationProps {
 
 export default function Navigation({ isScrolled }: NavigationProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const router = useRouter()
+
+  useEffect(() => {
+    // Check authentication status on mount and when it changes
+    setIsLoggedIn(isAuthenticated())
+  }, [])
+
+  const handleLogout = () => {
+    removeAuthToken()
+    setIsLoggedIn(false)
+    router.push("/login")
+  }
 
   const navLinks = [
     { href: "#features", label: "Features" },
@@ -64,15 +80,47 @@ export default function Navigation({ isScrolled }: NavigationProps) {
 
             {/* CTA Button */}
             <div className="hidden lg:flex items-center gap-4">
-              <a href="#download" className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent rounded-full blur-md opacity-40 group-hover:opacity-60 transition-opacity" />
-                <Button 
-                  className="relative bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-semibold px-6 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
-                >
-                  Get the App
-                  <ChevronRight size={16} className="ml-1 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </a>
+              {isLoggedIn ? (
+                <>
+                  <a href="/admin">
+                    <Button 
+                      variant="ghost" 
+                      className="font-semibold text-primary hover:text-primary/80 hover:bg-primary/5"
+                    >
+                      <UserIcon className="mr-2 h-4 w-4" />
+                      Dashboard
+                    </Button>
+                  </a>
+                  <Button 
+                    onClick={handleLogout}
+                    variant="outline"
+                    className="font-semibold text-destructive hover:bg-destructive/10 border-destructive/30"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <a href="/login">
+                    <Button 
+                      variant="ghost" 
+                      className="font-semibold text-primary hover:text-primary/80 hover:bg-primary/5"
+                    >
+                      Login
+                    </Button>
+                  </a>
+                  <a href="/signup" className="relative group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent rounded-full blur-md opacity-40 group-hover:opacity-60 transition-opacity" />
+                    <Button 
+                      className="relative bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-semibold px-6 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
+                    >
+                      Get Started
+                      <ChevronRight size={16} className="ml-1 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </a>
+                </>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -102,15 +150,52 @@ export default function Navigation({ isScrolled }: NavigationProps) {
                 {link.label}
               </a>
             ))}
-            <a
-              href="#download"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="block w-full mt-4"
-            >
-              <Button className="w-full bg-gradient-to-r from-primary to-accent text-white font-semibold py-3 rounded-xl">
-                Download Now
-              </Button>
-            </a>
+            {isLoggedIn ? (
+              <div className="flex flex-col gap-3 mt-4">
+                <a
+                  href="/admin"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block w-full"
+                >
+                  <Button variant="outline" className="w-full">
+                    <UserIcon className="mr-2 h-4 w-4" />
+                    Dashboard
+                  </Button>
+                </a>
+                <Button 
+                  onClick={() => {
+                    handleLogout();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  variant="destructive"
+                  className="w-full"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3 mt-4">
+                <a
+                  href="/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block w-full"
+                >
+                  <Button variant="outline" className="w-full">
+                    Login
+                  </Button>
+                </a>
+                <a
+                  href="/signup"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block w-full"
+                >
+                  <Button className="w-full bg-gradient-to-r from-primary to-accent text-white font-semibold py-3 rounded-xl">
+                    Get Started
+                  </Button>
+                </a>
+              </div>
+            )}
           </div>
         </div>
       </nav>
