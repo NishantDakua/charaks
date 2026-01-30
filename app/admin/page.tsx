@@ -1,17 +1,33 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Users, UserCheck, Settings, BarChart3, Loader2 } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { 
+  BarChart3, 
+  Loader2, 
+  Search,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  UserCheck,
+  TrendingUp,
+  FileText,
+  Users,
+  Briefcase,
+  Globe,
+  MapPin
+} from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { adminApi } from "@/lib/api";
 import { Doctor } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
@@ -27,6 +43,7 @@ export default function AdminPanel() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
   const { toast } = useToast();
 
@@ -67,6 +84,7 @@ export default function AdminPanel() {
       catch (err) {
         // Backend doesn't support approved endpoint yet
         console.log('Approved doctors endpoint not available');
+        
       }
       
       try {
@@ -238,368 +256,520 @@ export default function AdminPanel() {
       .toUpperCase();
   };
 
+  const getCurrentTabDoctors = (tab: string) => {
+    switch(tab) {
+      case 'pending': return pendingDoctors;
+      case 'approved': return approvedDoctors;
+      case 'rejected': return rejectedDoctors;
+      default: return pendingDoctors;
+    }
+  };
+
+  const filterDoctors = (doctors: Doctor[]) => {
+    if (!searchQuery.trim()) return doctors;
+    return doctors.filter(doctor => 
+      doctor.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      doctor.registrationNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      doctor.specialization.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      doctor.phoneNumber.includes(searchQuery)
+    );
+  };
+
   return (
-    <div className="min-h-screen bg-linear-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-950 dark:via-indigo-950 dark:to-purple-950 relative overflow-hidden">
-      {/* Animated Background Orbs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-400/20 dark:bg-blue-600/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-400/20 dark:bg-purple-600/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}} />
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-indigo-400/20 dark:bg-indigo-600/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}} />
+    <div className="space-y-6 animate-in fade-in duration-700">
+      {/* Enhanced Stats Grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="group relative overflow-hidden bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30 border-orange-200/50 dark:border-orange-800/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-400/20 to-red-400/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-500" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-orange-900 dark:text-orange-100">Pending Review</CardTitle>
+            <div className="p-2.5 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl shadow-lg">
+              <Clock className="h-4 w-4 text-white" />
+            </div>
+          </CardHeader>
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold text-orange-900 dark:text-orange-100">{pendingDoctors.length}</div>
+            <p className="text-xs text-orange-700/70 dark:text-orange-300/70 mt-1 flex items-center gap-1">
+              <AlertCircle className="h-3 w-3" />
+              Awaiting verification
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="group relative overflow-hidden bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-green-200/50 dark:border-green-800/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-400/20 to-emerald-400/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-500" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-green-900 dark:text-green-100">Approved</CardTitle>
+            <div className="p-2.5 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl shadow-lg">
+              <CheckCircle2 className="h-4 w-4 text-white" />
+            </div>
+          </CardHeader>
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold text-green-900 dark:text-green-100">{approvedDoctors.length}</div>
+            <p className="text-xs text-green-700/70 dark:text-green-300/70 mt-1 flex items-center gap-1">
+              <TrendingUp className="h-3 w-3" />
+              Active professionals
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="group relative overflow-hidden bg-gradient-to-br from-red-50 to-pink-50 dark:from-red-950/30 dark:to-pink-950/30 border-red-200/50 dark:border-red-800/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-red-400/20 to-pink-400/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-500" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-red-900 dark:text-red-100">Rejected</CardTitle>
+            <div className="p-2.5 bg-gradient-to-br from-red-500 to-pink-500 rounded-xl shadow-lg">
+              <XCircle className="h-4 w-4 text-white" />
+            </div>
+          </CardHeader>
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold text-red-900 dark:text-red-100">{rejectedDoctors.length}</div>
+            <p className="text-xs text-red-700/70 dark:text-red-300/70 mt-1 flex items-center gap-1">
+              <FileText className="h-3 w-3" />
+              Declined applications
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="group relative overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-200/50 dark:border-blue-800/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-500" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-blue-900 dark:text-blue-100">Total Applications</CardTitle>
+            <div className="p-2.5 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl shadow-lg">
+              <BarChart3 className="h-4 w-4 text-white" />
+            </div>
+          </CardHeader>
+          <CardContent className="relative z-10">
+            <div className="text-3xl font-bold text-blue-900 dark:text-blue-100">
+              {pendingDoctors.length + approvedDoctors.length + rejectedDoctors.length}
+            </div>
+            <p className="text-xs text-blue-700/70 dark:text-blue-300/70 mt-1 flex items-center gap-1">
+              <Users className="h-3 w-3" />
+              All time submissions
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Header */}
-      <div className="relative border-b border-white/20 bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold bg-linear-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">Doctor Verification & Approval</h1>
-              <p className="text-gray-600 dark:text-gray-300 flex items-center gap-2">
-                <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                Manage doctor applications and professional verifications
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <Button 
-                onClick={() => router.push("/admin/sub-admins")}
-                className="bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-700 backdrop-blur-md border border-blue-200/50 dark:border-gray-600/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 text-gray-900 dark:text-gray-100 font-medium"
-              >
-                <Users className="h-4 w-4 mr-2" />
-                Sub Admins
-              </Button>
-              <Button 
-                onClick={() => router.push("/admin/features")}
-                className="bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-700 backdrop-blur-md border border-purple-200/50 dark:border-gray-600/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 text-gray-900 dark:text-gray-100 font-medium"
-              >
-                <Settings className="h-4 w-4 mr-2" />
-                Manage Features
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="max-w-7xl mx-auto p-4 md:p-8 relative">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="group cursor-pointer bg-white/80 dark:bg-gray-900/80 hover:bg-white/95 dark:hover:bg-gray-900/95 backdrop-blur-xl border-white/60 dark:border-gray-700/60 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 overflow-hidden relative">
-            <div className="absolute inset-0 bg-linear-to-br from-orange-500/10 to-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-            <CardHeader className="pb-4 relative">
-              <div className="flex items-center justify-between mb-3">
-                <div className="p-3 bg-linear-to-br from-orange-500 to-red-500 rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-                  <Users className="h-6 w-6 text-white" />
-                </div>
-                <div className="text-right">
-                  <CardDescription className="text-xs font-medium text-gray-600 dark:text-gray-400">Pending Applications</CardDescription>
-                  <CardTitle className="text-4xl font-bold bg-linear-to-br from-orange-600 to-red-600 bg-clip-text text-transparent mt-1">{pendingDoctors.length}</CardTitle>
-                </div>
-              </div>
-              <div className="h-1.5 bg-linear-to-r from-orange-500 to-red-500 rounded-full" />
-            </CardHeader>
-          </Card>
-          
-          <Card className="group cursor-pointer bg-white/80 dark:bg-gray-900/80 hover:bg-white/95 dark:hover:bg-gray-900/95 backdrop-blur-xl border-white/60 dark:border-gray-700/60 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 overflow-hidden relative">
-            <div className="absolute inset-0 bg-linear-to-br from-green-500/10 to-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-            <CardHeader className="pb-4 relative">
-              <div className="flex items-center justify-between mb-3">
-                <div className="p-3 bg-linear-to-br from-green-500 to-emerald-500 rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-                  <UserCheck className="h-6 w-6 text-white" />
-                </div>
-                <div className="text-right">
-                  <CardDescription className="text-xs font-medium text-gray-600 dark:text-gray-400">Approved Doctors</CardDescription>
-                  <CardTitle className="text-4xl font-bold bg-linear-to-br from-green-600 to-emerald-600 bg-clip-text text-transparent mt-1">{approvedDoctors.length}</CardTitle>
-                </div>
-              </div>
-              <div className="h-1.5 bg-linear-to-r from-green-500 to-emerald-500 rounded-full" />
-            </CardHeader>
-          </Card>
-          
-          <Card className="group cursor-pointer bg-white/80 dark:bg-gray-900/80 hover:bg-white/95 dark:hover:bg-gray-900/95 backdrop-blur-xl border-white/60 dark:border-gray-700/60 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 overflow-hidden relative">
-            <div className="absolute inset-0 bg-linear-to-br from-purple-500/10 to-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-            <CardHeader className="pb-4 relative">
-              <div className="flex items-center justify-between mb-3">
-                <div className="p-3 bg-linear-to-br from-purple-500 to-indigo-500 rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-                  <BarChart3 className="h-6 w-6 text-white" />
-                </div>
-                <div className="text-right">
-                  <CardDescription className="text-xs font-medium text-gray-600 dark:text-gray-400">Total Doctors</CardDescription>
-                  <CardTitle className="text-4xl font-bold bg-linear-to-br from-purple-600 to-indigo-600 bg-clip-text text-transparent mt-1">{approvedDoctors.length + pendingDoctors.length + rejectedDoctors.length}</CardTitle>
-                </div>
-              </div>
-              <div className="h-1.5 bg-linear-to-r from-purple-500 to-indigo-500 rounded-full" />
-            </CardHeader>
-          </Card>
-        </div>
-
-        {/* Tabs for Doctor Applications */}
-        <Tabs defaultValue="pending" className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-3">
-            <TabsTrigger value="pending">
-              Pending ({pendingDoctors.length})
+      {/* Enhanced Tabs Section */}
+      <Tabs defaultValue="pending" className="w-full space-y-6">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <TabsList className="grid w-full sm:w-auto grid-cols-3 h-11 bg-muted/50 p-1">
+            <TabsTrigger value="pending" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white gap-2">
+              <Clock className="h-4 w-4" />
+              Pending
+              <Badge variant="secondary" className="ml-1 bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300">
+                {pendingDoctors.length}
+              </Badge>
             </TabsTrigger>
-            <TabsTrigger value="approved">
-              Approved ({approvedDoctors.length})
+            <TabsTrigger value="approved" className="data-[state=active]:bg-green-500 data-[state=active]:text-white gap-2">
+              <CheckCircle2 className="h-4 w-4" />
+              Approved
+              <Badge variant="secondary" className="ml-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
+                {approvedDoctors.length}
+              </Badge>
             </TabsTrigger>
-            <TabsTrigger value="rejected">
-              Rejected ({rejectedDoctors.length})
+            <TabsTrigger value="rejected" className="data-[state=active]:bg-red-500 data-[state=active]:text-white gap-2">
+              <XCircle className="h-4 w-4" />
+              Rejected
+              <Badge variant="secondary" className="ml-1 bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300">
+                {rejectedDoctors.length}
+              </Badge>
             </TabsTrigger>
           </TabsList>
 
+          <div className="relative w-full sm:w-80">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search doctors by name, reg. no, specialization..." 
+              className="pl-9 h-11 bg-background border-border/60 shadow-sm"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
+
           {/* Pending Doctor Applications Tab */}
-          <TabsContent value="pending" className="space-y-4 mt-6">
+          <TabsContent value="pending" className="space-y-4">
             {isLoading ? (
-              <Card>
-                <CardContent className="pt-6 flex flex-col items-center justify-center py-12">
-                  <Loader2 className="h-12 w-12 animate-spin text-blue-500 mb-4" />
-                  <p className="text-muted-foreground">Loading pending doctors...</p>
+              <Card className="border-border/60 shadow-lg">
+                <CardContent className="pt-6 flex flex-col items-center justify-center py-16">
+                  <Loader2 className="h-12 w-12 animate-spin text-orange-500 mb-4" />
+                  <p className="text-muted-foreground font-medium">Loading pending applications...</p>
                 </CardContent>
               </Card>
-            ) : pendingDoctors.length === 0 ? (
-              <Card>
-                <CardContent className="pt-6 text-center text-muted-foreground">
-                  No pending doctor applications at the moment
+            ) : filterDoctors(pendingDoctors).length === 0 ? (
+              <Card className="border-border/60 shadow-lg">
+                <CardContent className="pt-6 text-center py-16">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="p-4 bg-orange-100 dark:bg-orange-950 rounded-full">
+                      <AlertCircle className="h-8 w-8 text-orange-600 dark:text-orange-400" />
+                    </div>
+                    <h3 className="font-semibold text-lg">No Pending Applications</h3>
+                    <p className="text-muted-foreground text-sm max-w-md">
+                      {searchQuery ? "No results match your search criteria" : "All applications have been processed"}
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             ) : (
-              pendingDoctors.map((doctor) => (
-                <Card key={doctor.id} className="group overflow-hidden bg-white/80 dark:bg-gray-900/80 hover:bg-white/95 dark:hover:bg-gray-900/95 backdrop-blur-xl border border-white/60 dark:border-gray-700/60 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 relative">
-                  <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-linear-to-b from-orange-400 via-red-400 to-pink-400 pointer-events-none" />
-                  <div className="absolute inset-0 bg-linear-to-br from-orange-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                  <CardContent className="pt-6 relative z-10">
-                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
-                      {/* Doctor Info */}
-                      <div className="flex items-start gap-4 flex-1">
-                        <div className="relative">
-                          <Avatar className="h-16 w-16 ring-4 ring-orange-100 dark:ring-orange-900">
-                            <AvatarFallback className="bg-linear-to-br from-orange-400 to-orange-600 text-white text-lg font-bold">{getInitials(doctor.fullName)}</AvatarFallback>
-                          </Avatar>
-                          <div className="absolute -top-1 -right-1 h-5 w-5 bg-orange-500 rounded-full animate-pulse" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className="font-bold text-xl bg-linear-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">{doctor.fullName}</h3>
-                            <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300 border-orange-300">Pending Review</Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
-                            <span className="inline-block w-1.5 h-1.5 bg-purple-500 rounded-full"></span>
-                            <strong>Reg: {doctor.registrationNumber}</strong>
-                          </p>
-                          <p className="text-sm text-muted-foreground mb-3 flex items-center gap-1">
-                            <span className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
-                            {doctor.phoneNumber}
-                          </p>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                            <div className="flex items-center gap-2 p-2 bg-linear-to-r from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 rounded-lg">
-                              <div className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold">S</div>
-                              <div>
-                                <p className="text-xs text-muted-foreground">Specialization</p>
-                                <p className="font-semibold text-sm">{doctor.specialization}</p>
+              <Card className="border-border/60 shadow-lg">
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader className="bg-orange-50/50 dark:bg-orange-950/30">
+                      <TableRow className="hover:bg-transparent border-b">
+                        <TableHead className="w-[350px]">Doctor Details</TableHead>
+                        <TableHead>Professional Info</TableHead>
+                        <TableHead>Location</TableHead>
+                        <TableHead>Experience</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filterDoctors(pendingDoctors).map((doctor) => (
+                        <TableRow key={doctor.id} className="hover:bg-orange-50/30 dark:hover:bg-orange-950/20 group transition-colors">
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <div className="relative">
+                                <Avatar className="h-12 w-12 border-2 border-orange-200 dark:border-orange-800">
+                                  <AvatarFallback className="bg-gradient-to-br from-orange-400 to-red-500 text-white font-bold">
+                                    {getInitials(doctor.fullName)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="absolute -top-1 -right-1 h-3.5 w-3.5 bg-orange-500 rounded-full ring-2 ring-background animate-pulse" />
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="font-semibold text-sm">{doctor.fullName}</span>
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                                  <Badge variant="outline" className="text-xs px-1.5 py-0 h-5">
+                                    {doctor.registrationNumber}
+                                  </Badge>
+                                  <span>{doctor.phoneNumber}</span>
+                                </div>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2 p-2 bg-linear-to-r from-indigo-50 to-indigo-100 dark:from-indigo-950 dark:to-indigo-900 rounded-lg">
-                              <div className="h-8 w-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs font-bold">G</div>
-                              <div>
-                                <p className="text-xs text-muted-foreground">Gender</p>
-                                <p className="font-semibold text-sm capitalize">{doctor.gender}</p>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-1.5">
+                                <Briefcase className="h-3.5 w-3.5 text-blue-500" />
+                                <span className="font-medium text-sm">{doctor.specialization}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                <Globe className="h-3 w-3" />
+                                <span>{doctor.languages.join(', ')}</span>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2 p-2 bg-linear-to-r from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 rounded-lg">
-                              <div className="h-8 w-8 rounded-full bg-purple-500 flex items-center justify-center text-white text-xs font-bold">L</div>
-                              <div>
-                                <p className="text-xs text-muted-foreground">Languages</p>
-                                <p className="font-semibold text-sm">{doctor.languages.join(', ')}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2 p-2 bg-linear-to-r from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 rounded-lg">
-                              <div className="h-8 w-8 rounded-full bg-green-500 flex items-center justify-center text-white text-xs font-bold">E</div>
-                              <div>
-                                <p className="text-xs text-muted-foreground">Experience</p>
-                                <p className="font-semibold text-sm">{doctor.experienceYears} years</p>
-                              </div>
-                            </div>
+                          </TableCell>
+                          <TableCell>
                             {doctor.address && (
-                              <div className="flex items-center gap-2 p-2 bg-linear-to-r from-amber-50 to-amber-100 dark:from-amber-950 dark:to-amber-900 rounded-lg col-span-full">
-                                <div className="h-8 w-8 rounded-full bg-amber-500 flex items-center justify-center text-white text-xs font-bold">📍</div>
-                                <div>
-                                  <p className="text-xs text-muted-foreground">Location</p>
-                                  <p className="font-semibold text-sm">{doctor.address.city}, {doctor.address.state}</p>
-                                </div>
+                              <div className="flex items-center gap-1.5 text-sm">
+                                <MapPin className="h-3.5 w-3.5 text-amber-500" />
+                                <span>{doctor.address.city}, {doctor.address.state}</span>
                               </div>
                             )}
-                            {doctor.about && (
-                              <div className="flex items-start gap-2 p-2 bg-linear-to-r from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900 rounded-lg col-span-full">
-                                <div className="h-8 w-8 rounded-full bg-gray-500 flex items-center justify-center text-white text-xs font-bold">ℹ</div>
-                                <div className="flex-1">
-                                  <p className="text-xs text-muted-foreground">About</p>
-                                  <p className="text-sm">{doctor.about}</p>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex gap-3 md:flex-col">
-                        <Button
-                          onClick={() => handleApprove(doctor)}
-                          disabled={isActionLoading}
-                          className="flex-1 md:flex-none bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 font-semibold"
-                          size="lg"
-                        >
-                          {isActionLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : "✓"} Approve
-                        </Button>
-                        <Button
-                          onClick={() => handleReject(doctor.id)}
-                          disabled={isActionLoading}
-                          variant="outline"
-                          className="flex-1 md:flex-none border-2 border-red-200 hover:bg-red-50 hover:border-red-300 dark:border-red-800 dark:hover:bg-red-950 text-red-600 dark:text-red-400 font-semibold"
-                          size="lg"
-                        >
-                          ✕ Reject
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className="bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300">
+                              {doctor.experienceYears} years
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex gap-2 justify-end">
+                              <Button
+                                onClick={() => handleApprove(doctor)}
+                                disabled={isActionLoading}
+                                size="sm"
+                                className="bg-green-600 hover:bg-green-700 text-white shadow-md"
+                              >
+                                {isActionLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+                              </Button>
+                              <Button
+                                onClick={() => handleReject(doctor.id)}
+                                disabled={isActionLoading}
+                                size="sm"
+                                variant="outline"
+                                className="border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-950 text-red-600"
+                              >
+                                <XCircle className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
             )}
           </TabsContent>
 
           {/* Approved Doctors Tab */}
-          <TabsContent value="approved" className="space-y-4 mt-6">
-            {approvedDoctors.length === 0 ? (
-              <Card>
-                <CardContent className="pt-6 text-center text-muted-foreground">
-                  No approved doctors yet
+          <TabsContent value="approved" className="space-y-4">
+            {filterDoctors(approvedDoctors).length === 0 ? (
+              <Card className="border-border/60 shadow-lg">
+                <CardContent className="pt-6 text-center py-16">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="p-4 bg-green-100 dark:bg-green-950 rounded-full">
+                      <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-400" />
+                    </div>
+                    <h3 className="font-semibold text-lg">No Approved Doctors</h3>
+                    <p className="text-muted-foreground text-sm max-w-md">
+                      {searchQuery ? "No approved doctors match your search" : "No doctors have been approved yet"}
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             ) : (
-              approvedDoctors.map((doctor) => (
-                <Card key={doctor.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 border-l-4 border-l-green-500">
-                  <CardContent className="pt-6">
-                    <div className="flex flex-col md:flex-row md:items-start gap-4">
-                      <div className="flex items-start gap-4 flex-1">
-                        <Avatar className="h-14 w-14 ring-4 ring-green-100 dark:ring-green-900">
-                          <AvatarFallback className="bg-linear-to-br from-green-400 to-green-600 text-white font-bold">{getInitials(doctor.fullName)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className="font-bold text-lg">{doctor.fullName}</h3>
-                            <Badge className="bg-linear-to-r from-green-500 to-green-600 text-white border-0 shadow-sm">✓ Approved</Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground mb-3">{doctor.phoneNumber}</p>
-                          <div className="grid grid-cols-3 gap-2 text-sm mb-2">
-                            <div className="p-2 bg-green-50 dark:bg-green-950 rounded"><span className="font-medium">Specialization:</span> {doctor.specialization}</div>
-                            <div className="p-2 bg-green-50 dark:bg-green-950 rounded"><span className="font-medium">Reg Number:</span> {doctor.registrationNumber}</div>
-                            <div className="p-2 bg-green-50 dark:bg-green-950 rounded"><span className="font-medium">Experience:</span> {doctor.experienceYears} years</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
+              <Card className="border-border/60 shadow-lg">
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader className="bg-green-50/50 dark:bg-green-950/30">
+                      <TableRow className="hover:bg-transparent border-b">
+                        <TableHead className="w-[350px]">Doctor Details</TableHead>
+                        <TableHead>Professional Info</TableHead>
+                        <TableHead>Location</TableHead>
+                        <TableHead>Experience</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filterDoctors(approvedDoctors).map((doctor) => (
+                        <TableRow key={doctor.id} className="hover:bg-green-50/30 dark:hover:bg-green-950/20 transition-colors">
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-12 w-12 border-2 border-green-200 dark:border-green-800">
+                                <AvatarFallback className="bg-gradient-to-br from-green-400 to-emerald-500 text-white font-bold">
+                                  {getInitials(doctor.fullName)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex flex-col">
+                                <span className="font-semibold text-sm">{doctor.fullName}</span>
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                                  <Badge variant="outline" className="text-xs px-1.5 py-0 h-5">
+                                    {doctor.registrationNumber}
+                                  </Badge>
+                                  <span>{doctor.phoneNumber}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-1.5">
+                                <Briefcase className="h-3.5 w-3.5 text-blue-500" />
+                                <span className="font-medium text-sm">{doctor.specialization}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                <Globe className="h-3 w-3" />
+                                <span>{doctor.languages.join(', ')}</span>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {doctor.address && (
+                              <div className="flex items-center gap-1.5 text-sm">
+                                <MapPin className="h-3.5 w-3.5 text-amber-500" />
+                                <span>{doctor.address.city}, {doctor.address.state}</span>
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className="bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300">
+                              {doctor.experienceYears} years
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-sm">
+                              <CheckCircle2 className="h-3 w-3 mr-1" />
+                              Verified
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
             )}
           </TabsContent>
 
           {/* Rejected Doctors Tab */}
-          <TabsContent value="rejected" className="space-y-4 mt-6">
-            {rejectedDoctors.length === 0 ? (
-              <Card>
-                <CardContent className="pt-6 text-center text-muted-foreground">
-                  No rejected doctors yet
+          <TabsContent value="rejected" className="space-y-4">
+            {filterDoctors(rejectedDoctors).length === 0 ? (
+              <Card className="border-border/60 shadow-lg">
+                <CardContent className="pt-6 text-center py-16">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="p-4 bg-red-100 dark:bg-red-950 rounded-full">
+                      <XCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
+                    </div>
+                    <h3 className="font-semibold text-lg">No Rejected Applications</h3>
+                    <p className="text-muted-foreground text-sm max-w-md">
+                      {searchQuery ? "No rejected doctors match your search" : "No applications have been rejected"}
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             ) : (
-              rejectedDoctors.map((doctor) => (
-                <Card key={doctor.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 border-l-4 border-l-red-500">
-                  <CardContent className="pt-6">
-                    <div className="flex flex-col md:flex-row md:items-start gap-4">
-                      <div className="flex items-start gap-4 flex-1">
-                        <Avatar className="h-14 w-14 ring-4 ring-red-100 dark:ring-red-900">
-                          <AvatarFallback className="bg-linear-to-br from-red-400 to-red-600 text-white font-bold">{getInitials(doctor.fullName)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className="font-bold text-lg">{doctor.fullName}</h3>
-                            <Badge className="bg-linear-to-r from-red-500 to-red-600 text-white border-0 shadow-sm">✕ Rejected</Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground mb-3">{doctor.phoneNumber}</p>
-                          <div className="grid grid-cols-3 gap-2 text-sm mb-2">
-                            <div className="p-2 bg-red-50 dark:bg-red-950 rounded"><span className="font-medium">Specialization:</span> {doctor.specialization}</div>
-                            <div className="p-2 bg-red-50 dark:bg-red-950 rounded"><span className="font-medium">Reg Number:</span> {doctor.registrationNumber}</div>
-                            <div className="p-2 bg-red-50 dark:bg-red-950 rounded"><span className="font-medium">Experience:</span> {doctor.experienceYears} years</div>
-                          </div>
-                          {doctor.approvalRemark && (
-                            <div className="mt-3 p-3 bg-red-50 dark:bg-red-950 border-l-4 border-red-500 rounded">
-                              <p className="text-xs font-semibold text-red-600 dark:text-red-400 mb-1">Rejection Reason:</p>
-                              <p className="text-sm text-red-700 dark:text-red-300">{doctor.approvalRemark}</p>
+              <Card className="border-border/60 shadow-lg">
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader className="bg-red-50/50 dark:bg-red-950/30">
+                      <TableRow className="hover:bg-transparent border-b">
+                        <TableHead className="w-[350px]">Doctor Details</TableHead>
+                        <TableHead>Professional Info</TableHead>
+                        <TableHead>Location</TableHead>
+                        <TableHead>Experience</TableHead>
+                        <TableHead>Rejection Reason</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filterDoctors(rejectedDoctors).map((doctor) => (
+                        <TableRow key={doctor.id} className="hover:bg-red-50/30 dark:hover:bg-red-950/20 transition-colors">
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-12 w-12 border-2 border-red-200 dark:border-red-800">
+                                <AvatarFallback className="bg-gradient-to-br from-red-400 to-pink-500 text-white font-bold">
+                                  {getInitials(doctor.fullName)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex flex-col">
+                                <span className="font-semibold text-sm">{doctor.fullName}</span>
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                                  <Badge variant="outline" className="text-xs px-1.5 py-0 h-5">
+                                    {doctor.registrationNumber}
+                                  </Badge>
+                                  <span>{doctor.phoneNumber}</span>
+                                </div>
+                              </div>
                             </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-1.5">
+                                <Briefcase className="h-3.5 w-3.5 text-blue-500" />
+                                <span className="font-medium text-sm">{doctor.specialization}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                <Globe className="h-3 w-3" />
+                                <span>{doctor.languages.join(', ')}</span>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {doctor.address && (
+                              <div className="flex items-center gap-1.5 text-sm">
+                                <MapPin className="h-3.5 w-3.5 text-amber-500" />
+                                <span>{doctor.address.city}, {doctor.address.state}</span>
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className="bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300">
+                              {doctor.experienceYears} years
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="max-w-xs">
+                              {doctor.approvalRemark ? (
+                                <div className="p-2 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 rounded text-xs text-red-700 dark:text-red-300">
+                                  {doctor.approvalRemark}
+                                </div>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">No reason provided</span>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
             )}
           </TabsContent>
         </Tabs>
 
         {/* Doctor Approval Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-lg">
             <DialogHeader>
-              <DialogTitle>Reject Doctor Application</DialogTitle>
+              <DialogTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                <XCircle className="h-5 w-5" />
+                Reject Doctor Application
+              </DialogTitle>
               <DialogDescription>
-                Please provide a reason for rejecting this doctor's application.
+                Please provide a detailed reason for rejecting this application. This will be communicated to the applicant.
               </DialogDescription>
             </DialogHeader>
             
             {selectedDoctor && (
               <div className="space-y-4">
-                <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <Avatar className="h-10 w-10">
-                    <AvatarFallback>{getInitials(selectedDoctor.fullName)}</AvatarFallback>
+                <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-950/30 dark:to-pink-950/30 rounded-lg border border-red-200 dark:border-red-800">
+                  <Avatar className="h-12 w-12 ring-2 ring-red-500">
+                    <AvatarFallback className="bg-gradient-to-br from-red-400 to-pink-500 text-white font-bold">
+                      {getInitials(selectedDoctor.fullName)}
+                    </AvatarFallback>
                   </Avatar>
-                  <div>
-                    <h4 className="font-medium">{selectedDoctor.fullName}</h4>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-base">{selectedDoctor.fullName}</h4>
                     <p className="text-sm text-muted-foreground">{selectedDoctor.specialization}</p>
+                    <Badge variant="outline" className="mt-1 text-xs">
+                      {selectedDoctor.registrationNumber}
+                    </Badge>
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="remarks">Rejection Reason *</Label>
+                  <Label htmlFor="remarks" className="text-sm font-semibold">
+                    Rejection Reason <span className="text-red-500">*</span>
+                  </Label>
                   <Textarea
                     id="remarks"
-                    placeholder="Please specify the reason for rejection (required)..."
+                    placeholder="e.g., Invalid registration certificate, incomplete documentation, verification mismatch..."
                     value={remarks}
                     onChange={(e) => setRemarks(e.target.value)}
-                    rows={3}
-                    className="border-red-300 focus:border-red-500"
+                    rows={4}
+                    className="border-red-300 focus:border-red-500 dark:border-red-700 resize-none"
                   />
                   {!remarks.trim() && (
-                    <p className="text-xs text-red-500">Rejection reason is required</p>
+                    <p className="text-xs text-red-500 flex items-center gap-1">
+                      {/* <AlertCircle className="h-3 w-3" /> */}
+                      A rejection reason is mandatory
+                    </p>
                   )}
                 </div>
               </div>
             )}
             
-            <DialogFooter className="gap-2">
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isActionLoading}>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsDialogOpen(false)} 
+                disabled={isActionLoading}
+                className="border-border"
+              >
                 Cancel
               </Button>
               <Button 
                 onClick={handleConfirmAction}
                 disabled={!remarks.trim() || isActionLoading}
-                className="bg-red-500 hover:bg-red-600"
+                className="bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white shadow-lg"
               >
-                {isActionLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : "✕"} Reject Application
+                {isActionLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="h-4 w-4 mr-2" />
+                    Confirm Rejection
+                  </>
+                )}
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
     </div>
   );
 }
