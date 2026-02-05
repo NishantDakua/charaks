@@ -24,10 +24,16 @@ import {
 } from "@/components/ui/sidebar"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useRouter, usePathname } from "next/navigation"
+import { logout } from "@/lib/auth-utils"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter();
   const pathname = usePathname();
+
+  const handleLogout = () => {
+    logout();
+    router.push('/');
+  };
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -48,41 +54,42 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu className="gap-2 p-2">
-            <SidebarMenuItem>
-                <SidebarMenuButton 
-                    tooltip="Dashboard" 
-                    isActive={pathname === "/admin"}
-                    onClick={() => router.push("/admin")}
-                >
-                  <LayoutDashboard />
-                  <span>Dashboard</span>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-                <SidebarMenuButton 
-                    tooltip="Sub Admins" 
-                    isActive={pathname === "/admin/sub-admins"}
-                    onClick={() => router.push("/admin/sub-admins")}
-                >
-                  <UserCog />
-                  <span>Sub Admins</span>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarSeparator className="my-2" />
-            <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Settings">
-                  <Settings />
-                  <span>Settings</span>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="Dashboard"
+              isActive={pathname === "/admin"}
+              onClick={() => router.push("/admin")}
+            >
+              <LayoutDashboard />
+              <span>Dashboard</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="Sub Admins"
+              isActive={pathname === "/admin/sub-admins"}
+              onClick={() => router.push("/admin/sub-admins")}
+            >
+              <UserCog />
+              <span>Sub Admins</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarSeparator className="my-2" />
+          <SidebarMenuItem>
+            <SidebarMenuButton tooltip="Settings">
+              <Settings />
+              <span>Settings</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton 
-                size="lg"
-                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            <SidebarMenuButton
+              size="lg"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground cursor-pointer"
+              onClick={handleLogout}
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src="/avatars/admin.png" alt="Admin" />

@@ -10,7 +10,7 @@ export const isAuthenticated = (): boolean => {
   if (typeof window === 'undefined') {
     return false;
   }
-  
+
   const token = localStorage.getItem('authToken');
   return !!token;
 };
@@ -23,7 +23,7 @@ export const getCurrentUser = (): any | null => {
   if (typeof window === 'undefined') {
     return null;
   }
-  
+
   const userData = localStorage.getItem('userData');
   return userData ? JSON.parse(userData) : null;
 };
@@ -43,6 +43,16 @@ export const setCurrentUser = (userData: any): void => {
  */
 export const clearCurrentUser = (): void => {
   if (typeof window !== 'undefined') {
+    localStorage.removeItem('userData');
+  }
+};
+
+/**
+ * Logout user by clearing all authentication data
+ */
+export const logout = (): void => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('authToken');
     localStorage.removeItem('userData');
   }
 };

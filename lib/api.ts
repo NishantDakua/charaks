@@ -1,7 +1,10 @@
+
 import { ApiResponse, Doctor, LoginCredentials, AuthResponse } from './types';
 import { setCurrentUser, clearCurrentUser } from './auth-utils';
+import { MOCK_DOCTORS } from './mock-data';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+// Export API URL for direct use if needed (even though we mock)
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 // Helper function to get auth token from localStorage
 const getAuthToken = (): string | null => {
@@ -25,74 +28,47 @@ export const removeAuthToken = (): void => {
   }
 };
 
-// Helper function to make API requests with auth
-async function fetchWithAuth(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<Response> {
-  const token = getAuthToken();
-  
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string> || {}),
-  };
+// In-memory store for the session
+let doctors = [...MOCK_DOCTORS];
 
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
+// Helper to simulate network delay
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
-
-  return response;
-}
-
-// Authentication APIs
+// Authentication APIs (Mock)
 export const authApi = {
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
-    const response = await fetch(`${API_URL}/admin/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(credentials),
-    });
+    await delay(800); // Simulate network
+    // Mock successful login for any non-empty credentials
+    if (credentials.username && credentials.password) {
+      const token = "mock-jwt-token-" + Math.random().toString(36).substring(7);
+      const user = {
+        id: "admin-user-1",
+        username: credentials.username,
+        role: "admin" // Default to admin for demo
+      };
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('Login failed:', response.status, errorData);
+      setAuthToken(token);
+      setCurrentUser(user);
+
       return {
-        success: false,
-        message: errorData.message || `Server error: ${response.status}`,
+        success: true,
+        token,
+        user,
+        message: "Login successful"
       };
     }
-
-    const data = await response.json();
-    console.log('Login response:', data);
-    
-    if (data.success && data.token) {
-      setAuthToken(data.token);
-      // Store user data if available
-      if (data.user) {
-        setCurrentUser(data.user);
-      }
-    }
-
-    return data;
+    return {
+      success: false,
+      message: "Invalid credentials"
+    };
   },
 
   signup: async (signupData: any): Promise<AuthResponse> => {
-    const response = await fetch(`${API_URL}/admin/signup`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(signupData),
-    });
-
-    return response.json();
+    await delay(800);
+    return {
+      success: true,
+      message: "Signup successful"
+    };
   },
 
   logout: (): void => {
@@ -101,93 +77,81 @@ export const authApi = {
   },
 };
 
-// Admin APIs
+// Admin APIs (Mock)
 export const adminApi = {
   // Get all pending doctors
   getPendingDoctors: async (): Promise<ApiResponse<Doctor[]>> => {
-    try {
-      const response = await fetchWithAuth('/admin/doctors/pending', {
-        method: 'GET',
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to fetch pending doctors');
-      }
-
-      return response.json();
-    } catch (error) {
-      console.error('Error fetching pending doctors:', error);
-      throw error;
-    }
+    await delay(600);
+    const pending = doctors.filter(d => d.status === 'pending');
+    return {
+      success: true,
+      data: pending,
+      count: pending.length
+    };
   },
 
   // Get all approved doctors
   getApprovedDoctors: async (): Promise<ApiResponse<Doctor[]>> => {
-    try {
-      const response = await fetchWithAuth('/admin/doctors/approved', {
-        method: 'GET',
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to fetch approved doctors');
-      }
-
-      return response.json();
-    } catch (error) {
-      console.error('Error fetching approved doctors:', error);
-      throw error;
-    }
+    await delay(600);
+    const approved = doctors.filter(d => d.status === 'approved');
+    return {
+      success: true,
+      data: approved,
+      count: approved.length
+    };
   },
 
   // Get all rejected doctors
   getRejectedDoctors: async (): Promise<ApiResponse<Doctor[]>> => {
-    try {
-      const response = await fetchWithAuth('/admin/doctors/rejected', {
-        method: 'GET',
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to fetch rejected doctors');
-      }
-
-      return response.json();
-    } catch (error) {
-      console.error('Error fetching rejected doctors:', error);
-      throw error;
-    }
+    await delay(600);
+    const rejected = doctors.filter(d => d.status === 'rejected');
+    return {
+      success: true,
+      data: rejected,
+      count: rejected.length
+    };
   },
 
   // Approve a doctor
-  approveDoctor: async (doctorId: string): Promise<ApiResponse<Doctor>> => {
-    try {
-      const response = await fetchWithAuth(`/admin/doctors/${doctorId}/approve`, {
-        method: 'PUT',
-      });
+  approveDoctor: async (doctorId: string, remarks?: string): Promise<ApiResponse<Doctor>> => {
+    await delay(800);
+    const doctorIndex = doctors.findIndex(d => d.id === doctorId);
 
-      console.log('Approve doctor response status:', response.status);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Backend error response:', errorText);
-        
-        let error;
-        try {
-          error = JSON.parse(errorText);
-        } catch {
-          error = { message: errorText || `Server error: ${response.status}` };
-        }
-        
-        throw new Error(error.message || error.error || 'Failed to approve doctor');
-      }
-
-      return response.json();
-    } catch (error: any) {
-      console.error('Error approving doctor:', error.message || error);
-      throw error;
+    if (doctorIndex === -1) {
+      throw new Error("Doctor not found");
     }
+
+    const doctor = doctors[doctorIndex];
+    const timestamp = new Date().toISOString();
+    const adminName = "Admin User"; // Mock admin name
+
+    // Update doctor object
+    const updatedDoctor: Doctor = {
+      ...doctor,
+      status: 'approved',
+      approvedAt: timestamp,
+      approvedBy: adminName,
+      approvalRemarks: remarks || "Approved via Admin Dashboard",
+      updatedAt: timestamp,
+      remarksHistory: [
+        ...(doctor.remarksHistory || []),
+        {
+          id: `hist_${Date.now()}`,
+          action: 'approve',
+          remark: remarks || "Approved via Admin Dashboard",
+          timestamp,
+          by: adminName
+        }
+      ]
+    };
+
+    doctors[doctorIndex] = updatedDoctor;
+
+    return {
+      success: true,
+      data: updatedDoctor,
+      message: "Doctor approved successfully"
+    };
   },
 
   // Reject a doctor with remark
@@ -195,24 +159,42 @@ export const adminApi = {
     doctorId: string,
     remark: string
   ): Promise<ApiResponse<Doctor>> => {
-    try {
-      const response = await fetchWithAuth(`/admin/doctors/${doctorId}/reject`, {
-        method: 'PUT',
-        body: JSON.stringify({ remark }),
-      });
+    await delay(800);
+    const doctorIndex = doctors.findIndex(d => d.id === doctorId);
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to reject doctor');
-      }
-
-      return response.json();
-    } catch (error) {
-      console.error('Error rejecting doctor:', error);
-      throw error;
+    if (doctorIndex === -1) {
+      throw new Error("Doctor not found");
     }
+
+    const doctor = doctors[doctorIndex];
+    const timestamp = new Date().toISOString();
+    const adminName = "Admin User";
+
+    const updatedDoctor: Doctor = {
+      ...doctor,
+      status: 'rejected',
+      rejectedAt: timestamp,
+      rejectedBy: adminName,
+      rejectionRemarks: remark,
+      updatedAt: timestamp,
+      remarksHistory: [
+        ...(doctor.remarksHistory || []),
+        {
+          id: `hist_${Date.now()}`,
+          action: 'reject',
+          remark: remark,
+          timestamp,
+          by: adminName
+        }
+      ]
+    };
+
+    doctors[doctorIndex] = updatedDoctor;
+
+    return {
+      success: true,
+      data: updatedDoctor,
+      message: "Doctor rejected successfully"
+    };
   },
 };
-
-// Export API URL for direct use if needed
-export { API_URL };

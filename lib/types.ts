@@ -17,19 +17,48 @@ export interface Education {
 export interface Doctor {
   id: string;
   fullName: string;
-  gender: string;
+  email: string;
+  phoneNumber: string;
+  profilePhoto?: string;
   specialization: string;
   experienceYears: number;
   registrationNumber: string;
-  languages: string[];
-  phoneNumber: string;
-  about: string;
-  isApproved: boolean;
-  approvalRemark?: string | null;
+  qualification: string;
   address?: Address | null;
   education?: Education[];
+  languages: string[];
+  about: string;
+  
+  // Verification Documents
+  aadhaarCardImage?: string;
+  verificationDocuments?: string[];
+
+  // Status & Actions
+  status: 'pending' | 'approved' | 'rejected';
+  
+  // Approval Details
+  approvedAt?: string;
+  approvedBy?: string;
+  approvalRemarks?: string;
+
+  // Rejection Details
+  rejectedAt?: string;
+  rejectedBy?: string;
+  rejectionRemarks?: string;
+
+  // Remarks History
+  remarksHistory?: RemarkHistory[];
+
   createdAt: string;
   updatedAt: string;
+}
+
+export interface RemarkHistory {
+  id: string;
+  action: 'approve' | 'reject';
+  remark: string;
+  timestamp: string;
+  by: string; // Admin Name/ID
 }
 
 export interface ApiResponse<T> {
